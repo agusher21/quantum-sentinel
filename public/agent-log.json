@@ -1,1 +1,85 @@
-[]
+[
+  {
+    "taskId": "native-send",
+    "decision": "FAILED",
+    "lane": "native",
+    "to": "qor1ntpfg4zpxxkpwzwrh0uwdqqyz36lqnmp8nmpz0",
+    "amountQor": 0.05,
+    "reason": "Simulation/broadcast failed, aborting (no tx sent): REST 500 https://api-testnet.qore.host/cosmos/tx/v1beta1/simulate: {\"code\":2,\"message\":\"empty address string is not allowed with gas used: '4429'\",\"details\":[{\"@type\":\"/cosmos.base.abci.v1beta1.TxResponse\",\"height\":\"0\",\"txhash\":\"\",\"codespace\":\"undefined\",\"code\":1,\"data\":\"\",\"raw_log\":\"empty address string is not allowed\",\"logs\":[],\"info\":\"\",\"gas_wanted\":\"50000000\",\"",
+    "timestamp": 1794821334528,
+    "mock": false
+  },
+  {
+    "taskId": "oversize-send",
+    "decision": "REJECTED",
+    "lane": "native",
+    "to": "qor1ntpfg4zpxxkpwzwrh0uwdqqyz36lqnmp8nmpz0",
+    "amountQor": 5,
+    "reason": "REJECTED by rule maxQorPerTx: 5 QOR exceeds the per-transaction cap of 0.1 QOR.",
+    "timestamp": 1794821334528,
+    "mock": false
+  },
+  {
+    "taskId": "non-whitelisted-send",
+    "decision": "REJECTED",
+    "lane": "native",
+    "to": "qor1yg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3z6t9806",
+    "amountQor": 0.05,
+    "reason": "REJECTED by rule whitelist: qor1yg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3z6t9806 is not on the policy whitelist (qor1ntpfg4zpxxkpwzwrh0uwdqqyz36lqnmp8nmpz0).",
+    "timestamp": 1794821334529,
+    "mock": false
+  },
+  {
+    "taskId": "evm-transfer",
+    "decision": "EXECUTED",
+    "lane": "evm",
+    "to": "0x9ac294544131ac1709c3bbf8e680041475f04f61",
+    "amountQor": 0.01,
+    "reason": "In policy: whitelisted EVM target, 0.01 QOR inside open window (600 blocks / 5 txs / 1 QOR; window-open tx 972955B7BABD2D9D014FF6E9171467049AB8918E98CF60BE6CD2559BF1142F3D).",
+    "txHash": "0x233aa20884a5ec9b77e7bdf81624742306ba0067d6e2344b6f46f1cb3c24ec85",
+    "timestamp": 1794821344418,
+    "mock": false
+  },
+  {
+    "taskId": "native-send",
+    "decision": "EXECUTED",
+    "lane": "native",
+    "to": "qor1ntpfg4zpxxkpwzwrh0uwdqqyz36lqnmp8nmpz0",
+    "amountQor": 0.05,
+    "reason": "In policy: whitelisted, 0.05 ≤ 0.1 QOR/tx, hybrid-signed (simulated gas 188348).",
+    "txHash": "8CD990DAF9A10CF38C364894675F10D556DDEDC399F1B4D27F7700F75709D243",
+    "timestamp": 1794821372154,
+    "mock": false
+  },
+  {
+    "taskId": "oversize-send",
+    "decision": "REJECTED",
+    "lane": "native",
+    "to": "qor1ntpfg4zpxxkpwzwrh0uwdqqyz36lqnmp8nmpz0",
+    "amountQor": 5,
+    "reason": "REJECTED by rule maxQorPerTx: 5 QOR exceeds the per-transaction cap of 0.1 QOR.",
+    "timestamp": 1794821372155,
+    "mock": false
+  },
+  {
+    "taskId": "non-whitelisted-send",
+    "decision": "REJECTED",
+    "lane": "native",
+    "to": "qor1yg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3z6t9806",
+    "amountQor": 0.05,
+    "reason": "REJECTED by rule whitelist: qor1yg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3z6t9806 is not on the policy whitelist (qor1ntpfg4zpxxkpwzwrh0uwdqqyz36lqnmp8nmpz0).",
+    "timestamp": 1794821372155,
+    "mock": false
+  },
+  {
+    "taskId": "evm-transfer",
+    "decision": "EXECUTED",
+    "lane": "evm",
+    "to": "0x9ac294544131ac1709c3bbf8e680041475f04f61",
+    "amountQor": 0.01,
+    "reason": "In policy: whitelisted EVM target, 0.01 QOR inside open window (600 blocks / 5 txs / 1 QOR; window-open tx E138BA51144BDA2E1B1CAF7C397F00B19A4CF2A0D99EE4D789F443D59347A984).",
+    "txHash": "0xa2a5158ccd4b976be5186ebd7bab226634415ba2d688ff46d25a6255b1aa61bf",
+    "timestamp": 1794821380335,
+    "mock": false
+  }
+]

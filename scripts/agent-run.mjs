@@ -15,7 +15,6 @@
 //      inside it via viem to the owner's EVM address.
 // Every decision is appended to public/agent-log.json (last 100 kept),
 // which the demo UI reads. Testnet only; the agent holds faucet QOR.
-import { MsgSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
 import { openEvmWindowMsg } from "@qorechain/sdk";
 import {
   createPublicClient,
@@ -29,7 +28,6 @@ import {
   EVM_RPC_URL,
   OWNER_EVM,
   appendLog,
-  connectAgentTx,
   dayUsageFromLog,
   deriveAgent,
   evaluatePolicy,
@@ -43,6 +41,7 @@ import {
   qorToUqor,
   uqorToQor,
 } from "./common.mjs";
+import { makeEthClient } from "./eth-native.mjs";
 
 const MEMO_TAG = "Quantum Sentinel";
 const MSG_SEND_TYPE_URL = "/cosmos.bank.v1beta1.MsgSend";
@@ -85,8 +84,10 @@ console.log(
   `PQC key registered (algorithm ${pqc.algorithmId ?? "?"}). Policy: max ${policy.maxQorPerTx} QOR/tx, ${policy.maxQorPerDay} QOR/day, ${policy.maxTxCountPerDay} txs/day, whitelist ${policy.whitelist.join(", ")}.`,
 );
 
-// Hybrid client: every transaction from here is secp256k1 + ML-DSA-87.
-const tx = await connectAgentTx(unified, pqcKeypair, true);
+// Hybrid eth-native client: every transaction from here is secp256k1 +
+// ML-DSA-87, signed with the eth_secp256k1 scheme for the unified account.
+// Each broadcast() simulates first and aborts the task on a failed sim.
+const eth = makeEthClient(unified, { signMode: "hybrid" });
 
 const usage = dayUsageFromLog(loadLog());
 const summary = { executed: 0, rejected: 0, failed: 0 };
@@ -104,21 +105,26 @@ function logDecision(entry) {
 }
 
 function buildMsgSend(to, amountQor) {
+  // Plain-object value: EthNativeSigner encodes via the bound registry
+  // (qorechainRegistry). Pre-encoding with MsgSend.encode() here would make
+  // the registry re-encode the raw bytes as a MsgSend object, producing a
+  // message with empty addresses ("empty address string is not allowed").
   return {
     typeUrl: MSG_SEND_TYPE_URL,
-    value: MsgSend.encode({
+    value: {
       fromAddress: agent,
       toAddress: to,
       amount: [{ denom: "uqor", amount: qorToUqor(amountQor) }],
-    }).finish(),
+    },
   };
 }
 
 async function runNativeTask(task) {
   const msg = buildMsgSend(task.to, task.amountQor);
-  let gas;
+  let result;
   try {
-    gas = await tx.simulate([msg]);
+    // broadcast() simulates first; a failed sim throws and sends nothing.
+    result = await eth.broadcast([msg], `${MEMO_TAG} ${task.id}`);
   } catch (err) {
     logDecision({
       taskId: task.id,
@@ -126,16 +132,12 @@ async function runNativeTask(task) {
       lane: "native",
       to: task.to,
       amountQor: task.amountQor,
-      reason: `Simulation failed, aborting (no tx sent): ${err instanceof Error ? err.message : String(err)}`,
+      reason: `Simulation/broadcast failed, aborting (no tx sent): ${err instanceof Error ? err.message : String(err)}`,
     });
     summary.failed += 1;
     return;
   }
-  const result = await tx.bankSend(
-    task.to,
-    [{ denom: "uqor", amount: qorToUqor(task.amountQor) }],
-    { fee: "auto", memo: `${MEMO_TAG} ${task.id}` },
-  );
+  const gas = result.gasUsed;
   if (result.code !== 0) {
     logDecision({
       taskId: task.id,
@@ -171,9 +173,13 @@ async function runEvmTask(task) {
     maxTxs: policy.evmWindow.maxTxs,
     maxValue: qorToUqor(policy.evmWindow.maxValueQor),
   });
-  let gas;
+  let open;
   try {
-    gas = await tx.simulate([windowMsg]);
+    // broadcast() simulates first; a failed sim throws and sends nothing.
+    open = await eth.broadcast(
+      [windowMsg],
+      `${MEMO_TAG} open EVM window ${task.id}`,
+    );
   } catch (err) {
     logDecision({
       taskId: task.id,
@@ -181,16 +187,12 @@ async function runEvmTask(task) {
       lane: "evm",
       to: task.to,
       amountQor: task.amountQor,
-      reason: `Window-open simulation failed, aborting (no tx sent): ${err instanceof Error ? err.message : String(err)}`,
+      reason: `Window-open simulation/broadcast failed, aborting (no tx sent): ${err instanceof Error ? err.message : String(err)}`,
     });
     summary.failed += 1;
     return;
   }
-  const open = await tx.signAndBroadcast(
-    [windowMsg],
-    "auto",
-    `${MEMO_TAG} open EVM window ${task.id}`,
-  );
+  const gas = open.gasUsed;
   if (open.code !== 0) {
     logDecision({
       taskId: task.id,
@@ -334,7 +336,7 @@ for (const task of tasks) {
   }
 }
 
-tx.disconnect();
+await eth.disconnect();
 const balanceAfter = await getBalanceUqor(agent);
 console.log(
   `\nDone: ${summary.executed} executed, ${summary.rejected} rejected, ${summary.failed} failed. Balance now ${uqorToQor(balanceAfter)} QOR. Log: public/agent-log.json`,

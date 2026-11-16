@@ -2,16 +2,16 @@
 // Run once, AFTER funding the agent from the faucet:
 //   node scripts/register-agent.mjs
 // Reads the agent identity from .env.local (never prints the mnemonic),
-// connects a classical TxClient, and calls ensurePqcRegistered — which is
-// idempotent: if the key is already registered it reports that and sends
+// and registers via the eth-native signer (scripts/eth-native.mjs) — the
+// agent is a UNIFIED account, so its registration tx is signed classical
+// with the eth_secp256k1 scheme (bootstrap-exempt MsgRegisterPQCKeyV2).
+// Idempotent: if the key is already registered it reports that and sends
 // nothing. Then it verifies the registration with a fresh REST read.
 // Fails cleanly with "agent unfunded — claim the faucet first" when the
 // balance is 0, because registration costs gas the agent does not have.
 import { createHash } from "node:crypto";
-import { ensurePqcRegistered } from "@qorechain/sdk";
 import {
   REST_URL,
-  connectAgentTx,
   deriveAgent,
   explorerTxUrl,
   getBalanceUqor,
@@ -19,6 +19,7 @@ import {
   loadEnvFile,
   uqorToQor,
 } from "./common.mjs";
+import { registerPqcEth } from "./eth-native.mjs";
 
 const env = loadEnvFile();
 const { unified, pqcKeypair } = await deriveAgent(env);
@@ -48,17 +49,21 @@ const statusBefore = await getPqcStatus(unified.cosmos);
 console.log(
   `  PQC registered before: ${statusBefore.registered ? `yes (algorithm ${statusBefore.algorithmId ?? "?"})` : "no"}`,
 );
+if (statusBefore.registered) {
+  console.log("  Already registered — no transaction sent.");
+  console.log("  Next: node scripts/agent-run.mjs");
+  process.exit(0);
+}
 
 // Classical client: the registration transaction itself stays classical;
 // hybrid signing starts only after the key exists.
-const tx = await connectAgentTx(unified, pqcKeypair, false);
-const result = await ensurePqcRegistered(tx, { pqcKeypair, rest: REST_URL });
-if (result.alreadyRegistered) {
-  console.log("  Already registered — no transaction sent.");
-} else {
-  console.log(`  Registration tx: ${result.txHash}`);
-  console.log(`  Explorer: ${explorerTxUrl(result.txHash)}`);
+const result = await registerPqcEth(unified, pqcKeypair);
+if (result.code !== 0) {
+  console.error(`  Registration tx FAILED (code ${result.code}): ${result.rawLog ?? ""}`);
+  process.exit(1);
 }
+console.log(`  Registration tx: ${result.transactionHash}`);
+console.log(`  Explorer: ${explorerTxUrl(result.transactionHash)}`);
 
 const statusAfter = await getPqcStatus(unified.cosmos);
 if (!statusAfter.registered) {
@@ -69,4 +74,3 @@ console.log(
   `  Verified: PQC key registered (algorithm ${statusAfter.algorithmId ?? "?"}).`,
 );
 console.log("  Next: node scripts/agent-run.mjs");
-tx.disconnect();

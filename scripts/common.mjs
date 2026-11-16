@@ -3,10 +3,8 @@
 // NEVER run in a browser. The mnemonic is read here and never printed.
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import {
-  TxClient,
   deriveUnifiedAccount,
   derivePqcCanonical,
-  directSignerFromPrivateKey,
   fetchPqcStatus,
   fetchEvmWindow,
 } from "@qorechain/sdk";
@@ -77,35 +75,6 @@ export async function deriveAgent(env) {
   }
   const pqcKeypair = derivePqcCanonical(unified.cosmos, mnemonic);
   return { unified, pqcKeypair };
-}
-
-function hexToBytes(hex) {
-  const clean = hex.startsWith("0x") ? hex.slice(2) : hex;
-  return new Uint8Array(Buffer.from(clean, "hex"));
-}
-
-/**
- * Connect a TxClient for the agent. With `withPqc`, every transaction is
- * signed hybrid (secp256k1 + ML-DSA-87); without it the client signs
- * classical only — the right mode for the key-registration transaction
- * itself, which stays classical.
- */
-export async function connectAgentTx(unified, pqcKeypair, withPqc) {
-  const signer = await directSignerFromPrivateKey(
-    hexToBytes(unified.privateKey),
-    "qor",
-  );
-  const tx = await TxClient.connect({
-    rpcEndpoint: RPC_URL,
-    signer,
-    ...(withPqc ? { pqcKeypair, rest: REST_URL } : {}),
-  });
-  if (tx.senderAddress !== unified.cosmos) {
-    throw new Error(
-      `TxClient sender ${tx.senderAddress} is not the agent ${unified.cosmos} — refusing to run.`,
-    );
-  }
-  return tx;
 }
 
 /** uqor balance of an address over REST (direct Node fetch, no CORS issue). */

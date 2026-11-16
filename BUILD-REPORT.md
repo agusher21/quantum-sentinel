@@ -96,6 +96,54 @@ unreachable:** Balance 100 QOR, PQC registered (algorithm 1), EVM window
 LIVE, log 2 executed + 2 rejected, no error banner. Also fixed a float
 display artifact (usage line showed `0.060000000000000005 QOR`, now `0.06`).
 
+## First funded run — DONE 2026-11-16 ~16:26–16:29 WIB (after a signer fix)
+
+**Signer bug found by the first run:** `register-agent.mjs` failed with
+"TxClient sender qor12hdw2cgp5xxqnutpus0am7p79nq82df26p84m5 is not the agent
+qor1zr9ev820wyrw300yy9ke99x2xuq3nrmf6nknqd". Root cause: the agent is a
+UNIFIED account (address = keccak256(pubkey)[12:]); the scripts used
+cosmjs `directSignerFromPrivateKey`, which derives a ripemd160 address
+from the same key and can never spend from a unified account. The SDK
+documents this: unified accounts sign native txs with the `eth_secp256k1`
+scheme (keccak256 SignDoc hash + ethsecp256k1 pubkey) via `EthNativeSigner`.
+**Fix (commit, this repo):** new `scripts/eth-native.mjs` — `EthNativeSigner`
++ StargateClient transport, simulate-first via REST
+`/cosmos/tx/v1beta1/simulate` (gas = sim × 1.5 + headroom), PQC
+registration replicated for the eth-native signer (classical,
+bootstrap-exempt MsgRegisterPQCKeyV2 + proof-of-possession when v3.2.3
+applies). `connectAgentTx`/TxClient path removed from `common.mjs`;
+both runner scripts use the eth-native client. A second bug found in the
+same run: `buildMsgSend` pre-encoded the value with `MsgSend.encode()`,
+which the registry re-encoded into empty addresses ("empty address
+string is not allowed") — fixed to pass the plain-object value.
+
+**Funding:** faucet was rate-limited (Toni had claimed 100 QOR to his main
+wallet the same day; main wallet verified 194.11 QOR on-chain). Toni sent
+**2 QOR from his main wallet** to the agent instead (verified on-chain).
+
+**First real run — verified live on-chain, all code 0:**
+- PQC registration tx `DCAC6849BB224743E194A3683D3735422C0024371AFEEEF5316BDEB28345FAA8`
+  (height 10186887, gas 298,379) — PQC key registered, algorithm 1, fingerprint
+  `25d14ba1…` (verified via fresh REST read).
+- native-send 0.05 QOR → owner (hybrid-signed):
+  `8CD990DAF9A10CF38C364894675F10D556DDEDC399F1B4D27F7700F75709D243`
+  (height 10186918, gas 188,348).
+- EVM window opens (hybrid-signed native):
+  `972955B7BABD2D9D014FF6E9171467049AB8918E98CF60BE6CD2559BF1142F3D`
+  (height 10186896) and
+  `E138BA51144BDA2E1B1CAF7C397F00B19A4CF2A0D99EE4D789F443D59347A984`
+  (height 10186921); EVM transfers 0.01 QOR inside them:
+  `0x233aa20884a5ec9b77e7bdf81624742306ba0067d6e2344b6f46f1cb3c24ec85`
+  and `0xa2a5158ccd4b976be5186ebd7bab226634415ba2d688ff46d25a6255b1aa61bf`
+  (both status 0x1, from agent EVM 0x10cB… to owner 0x9ac2…).
+- Policy enforcement demonstrated live: oversize-send 5 QOR REJECTED
+  (maxQorPerTx), non-whitelisted-send REJECTED (whitelist). Run 2 summary:
+  2 executed, 2 rejected, 0 failed. Agent balance now **1.725082 QOR**;
+  main wallet 192.135 QOR (194.11 − 2 sent − ~0.025 send gas + 0.05 back).
+- `public/agent-log.json` now holds the real decisions (2 executed +
+  2 rejected per run); the mock-mode video is still honest/submittable,
+  a re-cut with the real log is optional.
+
 ## What is NOT done — pending items
 
 1. **Funding (needs Toni):** claim the faucet
