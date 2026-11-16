@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Local env — CONTAINS THE AGENT'S TESTNET-ONLY KEY. Never commit.
+.env
+.env.local
+.env*.local
+
+# Editor / OS
+.DS_Store
+*.log
+
+# Demo-video working files (15 MB of intermediates). Keep only the
+# reproducible recording/post scripts; the final cut is public/demo-video.mp4.
+video/*
+!video/driver.cjs
+!video/record.sh
+!video/post.sh

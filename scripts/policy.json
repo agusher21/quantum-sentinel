@@ -1,0 +1,17 @@
+{
+  "activeHoursUtc": [
+    0,
+    24
+  ],
+  "evmWindow": {
+    "blocks": 600,
+    "maxTxs": 5,
+    "maxValueQor": 1
+  },
+  "maxQorPerDay": 0.5,
+  "maxQorPerTx": 0.1,
+  "maxTxCountPerDay": 10,
+  "whitelist": [
+    "qor1ntpfg4zpxxkpwzwrh0uwdqqyz36lqnmp8nmpz0"
+  ]
+}

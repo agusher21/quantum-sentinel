@@ -1,0 +1,30 @@
+[
+  {
+    "amountQor": 0.05,
+    "id": "native-send",
+    "lane": "native",
+    "note": "In-policy native send to the owner — expect EXECUTE.",
+    "to": "qor1ntpfg4zpxxkpwzwrh0uwdqqyz36lqnmp8nmpz0"
+  },
+  {
+    "amountQor": 5,
+    "id": "oversize-send",
+    "lane": "native",
+    "note": "5 QOR exceeds maxQorPerTx (0.1) — expect REJECT, never executed.",
+    "to": "qor1ntpfg4zpxxkpwzwrh0uwdqqyz36lqnmp8nmpz0"
+  },
+  {
+    "amountQor": 0.05,
+    "id": "non-whitelisted-send",
+    "lane": "native",
+    "note": "Destination is not on the whitelist — expect REJECT, never executed.",
+    "to": "qor1yg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3z6t9806"
+  },
+  {
+    "amountQor": 0.01,
+    "id": "evm-transfer",
+    "lane": "evm",
+    "note": "Open a scoped EVM window (600 blocks / 5 txs / 1 QOR) then send 0.01 QOR inside it to the owner's EVM address — expect EXECUTE.",
+    "to": "0x9ac294544131ac1709c3bbf8e680041475f04f61"
+  }
+]
