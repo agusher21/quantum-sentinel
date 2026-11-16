@@ -55,14 +55,17 @@ Built with create-qorechain-dapp v0.14.0 (Vite + React + TypeScript),
 @qorechain/sdk v0.14.0 and viem 2.57.20 on the qorechain-diana testnet.
 The agent is a fresh testnet-only unified account (native qor1 + EVM 0x)
 with a canonical address-bound ML-DSA-87 keypair
-(`derivePqcCanonical`), registered on chain with
-`ensurePqcRegistered`. The offline runner (`scripts/agent-run.mjs`)
+(`derivePqcCanonical`), registered on chain (classical
+`MsgRegisterPQCKeyV2` + proof-of-possession, signed with the
+eth-native signer). The offline runner (`scripts/agent-run.mjs`)
 checks balance and PQC registration first, evaluates each task in
 `scripts/tasks.json` against the policy in `scripts/policy.json`
 (whitelist → per-tx cap → daily cap → daily tx count → active hours →
 EVM window bound), simulates every in-policy transaction before
-broadcasting, and sends native transfers with a hybrid `TxClient`
-(`bankSend`) and EVM transfers with viem inside a window opened by a
+broadcasting, and sends native transfers as hybrid-signed txs through
+the eth-native signer (`EthNativeSigner`, eth_secp256k1 scheme — the
+agent is a unified account, so the classic cosmjs direct signer cannot
+spend from it) and EVM transfers with viem inside a window opened by a
 hybrid-signed `MsgOpenEVMWindow` (`openEvmWindowMsg`, verified live with
 `fetchEvmWindow`). Every decision is appended to
 `public/agent-log.json`, which the demo reads. The demo itself connects
@@ -79,7 +82,9 @@ simulates the agent status and log for trying the UI without a wallet.
 - [ ] Demo live at https://quantum-sentinel.vercel.app (loads, cover shows)
       — verify the exact Vercel URL first; use the -three (or other suffix)
       URL if the bare name was taken
-- [ ] Agent funded from the faucet (100 QOR to the agent qor1 above)
+- [ ] Agent funded (2 QOR sent from Toni's main wallet 2026-11-16 —
+      the faucet was rate-limited that day, 1 claim/24h per account;
+      balance after first run 1.725082 QOR)
 - [ ] PQC key registered: `node scripts/register-agent.mjs` run, verified
 - [ ] First agent run done: `node scripts/agent-run.mjs` — native-send
       EXECUTED (hybrid-signed), oversize + non-whitelisted REJECTED,
