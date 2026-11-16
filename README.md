@@ -14,7 +14,7 @@ category, solo builder. Third fest project, after Quantum Tip Jar and
 Quantum Dice.
 
 - Repo: https://github.com/agusher21/quantum-sentinel
-- Live demo: https://quantum-sentinel.vercel.app
+- Live demo: https://quantum-sentinel-mu.vercel.app
 - Fest page: https://build.qorechain.io/p/quantum-sentinel (to be created)
 - Agent (testnet only): `qor1zr9ev820wyrw300yy9ke99x2xuq3nrmf6nknqd`
   (EVM `0x10cB961d4F7106E8BdE4216d9294Ca3701198F69`)

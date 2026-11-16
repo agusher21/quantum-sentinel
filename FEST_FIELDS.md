@@ -12,11 +12,11 @@ does NOT save drafts — fill every field in ONE session from Toni's signed-in
 - **Tagline (≤ 140 chars):**
   A post-quantum allowance agent: it only spends inside a policy you can read, every action hybrid-signed.
 - **GitHub repository:** https://github.com/agusher21/quantum-sentinel
-- **Live demo URL:** https://quantum-sentinel.vercel.app
-  (NOTE: if the bare Vercel name is taken, the deployed URL may gain a
-  suffix like -three — verify the live URL before submitting and use the
-  exact one that loads.)
-- **Video URL:** https://quantum-sentinel.vercel.app/demo-video.mp4
+- **Live demo URL:** https://quantum-sentinel-mu.vercel.app
+  (verified live 2026-11-16 ~16:38 WIB: homepage 200, video 200, cover 200.
+  The bare name quantum-sentinel.vercel.app is taken by an unrelated Spanish
+  cybersecurity agency site — Vercel assigned -mu instead.)
+- **Video URL:** https://quantum-sentinel-mu.vercel.app/demo-video.mp4
   (recorded 2026-11-16, 66.5 s, 1280×720 — scripted screen capture of the
   demo in `?mock=1` mode: policy, ALLOW/REJECT playground, activity log,
   real in-browser ML-DSA-87 sign/verify + tamper rejection. The file is
@@ -79,7 +79,7 @@ simulates the agent status and log for trying the UI without a wallet.
 ## Checklist before submitting
 
 - [ ] Repo is public at https://github.com/agusher21/quantum-sentinel
-- [ ] Demo live at https://quantum-sentinel.vercel.app (loads, cover shows)
+- [ ] Demo live at https://quantum-sentinel-mu.vercel.app (loads, cover shows)
       — verify the exact Vercel URL first; use the -three (or other suffix)
       URL if the bare name was taken
 - [ ] Agent funded (2 QOR sent from Toni's main wallet 2026-11-16 —

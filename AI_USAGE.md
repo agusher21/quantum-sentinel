@@ -17,7 +17,7 @@ AI Agents category, solo builder. It is the human builder's third fest
 project, after Quantum Tip Jar and Quantum Dice.
 
 - Repo: https://github.com/agusher21/quantum-sentinel
-- Live demo: https://quantum-sentinel.vercel.app
+- Live demo: https://quantum-sentinel-mu.vercel.app
 - Fest page: https://build.qorechain.io/p/quantum-sentinel (to be created)
 - Built 16 November 2026 (demo + runner; first funded run still to come —
   the agent account is unfunded at the time of writing).
